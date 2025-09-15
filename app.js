@@ -4,6 +4,7 @@ const tourRouter = require("./routes/tourRouter");
 const userRouter = require("./routes/userRouter");
 const { unknownEndpoint } = require("./middleware/customMiddleware");
 const connectDB = require("./config/db");
+require("dotenv").config();
 
 connectDB();
 
