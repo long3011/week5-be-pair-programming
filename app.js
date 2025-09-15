@@ -3,8 +3,12 @@ const app = express();
 const tourRouter = require("./routes/tourRouter");
 const userRouter = require("./routes/userRouter");
 const { unknownEndpoint } = require("./middleware/customMiddleware");
+const connectDB = require("./config/db");
+
+connectDB();
 
 const morgan = require("morgan");
+const { connect } = require("mongoose");
 app.use(morgan("dev"));
 
 // Middleware to parse JSON
