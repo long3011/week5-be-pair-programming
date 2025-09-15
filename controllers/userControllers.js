@@ -1,57 +1,85 @@
 const User = require("../models/userModel");
+const mongoose = require('mongoose');
 
 // GET /users
-const getAllUsers = (req, res) => {
-  const users = User.getAll();
-  res.json(users);
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "failed to deliver" })
+  }
 };
 
 // POST /users
-const createUser = (req, res) => {
-  const newUser = User.addOne({ ...req.body }); // Spread the req.body object
-
-  if (newUser) {
+const createUser = async (req, res) => {
+  try {
+    const newUser = await User.create({ ...req.body });
     res.status(201).json(newUser);
-  } else {
-    // Handle error (e.g., failed to create user)
-    res.status(400).json({ message: "Invalid user data" });
+  } catch (error) {
+    res.status(400).json({ message: "faile to create a user", error: error.message })
   }
 };
- 
+
 // GET /users/:userId
-const getUserById = (req, res) => {
+const getUserById = async (req, res) => {
   const userId = req.params.userId;
-  const user = User.findById(userId);
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404).json({ message: "User not found" });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "user id not correct" })
   }
+  try {
+    const user = await User.findById(userId);
+
+    if (user) {
+      res.status(200).json(user)
+    } else {
+      res.status(404).json({ message })
+    }
+  } catch (error) {
+    res.status(500).json({ message: "failed to retrieve user" })
+  }
+
 };
 
 // PUT /users/:userId
-const updateUser = (req, res) => {
-  const userId = req.params.userId;
-  const updatedUser = User.updateOneById(userId, { ...req.body }); // Spread the req.body object
+const updateUser = async (req, res) => {
 
-  if (updatedUser) {
-    res.json(updatedUser);
-  } else {
-    // Handle update failure (e.g., user not found)
-    res.status(404).json({ message: "User not found" });
+  const userId = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "user id not correct" })
+  }
+
+  try {
+    const updatedUser = await User.updateOneById({ _id: userId },
+      { ...req.body },
+      { new: true });
+
+    if (updatedUser) {
+      res.status(200).json(updatedUser);
+    } else {
+      // Handle update failure (e.g., user not found)
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "failed to connect to server" })
   }
 };
 
 // DELETE /users/:userId
-const deleteUser = (req, res) => {
+const deleteUser = async (req, res) => {
   const userId = req.params.userId;
-  const isDeleted = User.deleteOneById(userId);
-
-  if (isDeleted) {
-    res.status(204).send();
-  } else {
-    // Handle deletion failure (e.g., user not found)
-    res.status(404).json({ message: "User not found" });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "user id not correct" })
+  }
+  try {
+    const isDeleted = await User.findOneAndDelete({ _id: userId })
+    if (isDeleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).json({ message: "User not found" }); // Handle deletion failure (e.g., user not found)
+    }
+  } catch (error) {
+    res.status(500).json({ message: " failed to connect to server" })
   }
 };
 
