@@ -7,7 +7,7 @@ const getAllUsers = async (req, res) => {
     const users = await User.find({}).sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: "failed to deliver" })
+    res.status(500).json({ message: "failed to deliver", error: error.message })
   }
 };
 
@@ -44,7 +44,7 @@ const getUserById = async (req, res) => {
 // PUT /users/:userId
 const updateUser = async (req, res) => {
 
-  const userId = req.params;
+  const userId = req.params.userId;
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "user id not correct" })
   }
